@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Socket to me</title>
+  </head>
+
+  <body>
+    <div class="content">
+      <h1>Chatty chat</h1>
+
+      <textarea
+        id="chatmessages"
+        readonly
+        name="chatmessages"
+        rows="6"
+        placeholder="Welcome to the general chatroom, here messages from others will appear"
+      ></textarea>
+
+      <form id="chatroom-message" class="flex-row-between">
+        <input
+          type="text"
+          id="message"
+          name="message"
+          placeholder="Message..."
+          maxlength="1024"
+        />
+        <input type="submit" value="Send message" />
+      </form>
+    </div>
+
+    <script type="text/javascript">
+      function appendMessage(message) {
+        textarea = document.getElementById("chatmessages");
+        textarea.innerHTML += message + "\n";
+        textarea.scrollTop = textarea.scrollHeight;
+      }
+
+      function sendMessage(conn) {
+        return function (e) {
+          e.preventDefault();
+          const form = e.target;
+          const message = form.message.value;
+          if (message.trim()) {
+            conn.send(message.trim());
+          }
+          form.reset();
+        };
+      }
+
+      function connect() {
+        const socket = new WebSocket("ws://localhost:3000/ws");
+
+        socket.onmessage = (evt) => {
+          appendMessage(evt.data);
+        };
+
+        return socket;
+      }
+
+      window.onload = function () {
+        const socket = connect();
+        document
+          .getElementById("chatroom-message")
+          .addEventListener("submit", sendMessage(socket));
+      };
+    </script>
+
+    <style type="text/css">
+      textarea {
+        box-sizing: border-box;
+        width: 100%;
+      }
+
+      .flex-row-between {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .content {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin: auto;
+        width: min(80%, 600px);
+        border: 2px solid green;
+        border-radius: 8px;
+        padding: 10px;
+        padding-bottom: 20px;
+      }
+    </style>
+  </body>
+</html>
